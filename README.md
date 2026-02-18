@@ -1,17 +1,45 @@
+                     ------------BRIEF DESCRIPTION ABOUT WASTE SORTING BIN----------------
+                     PROJECT DESCRIPTION
+
+This project presents an automatic bin sorting system that separates waste into wet and dry categories using sensors and a servo mechanism. The system is designed to reduce manual waste segregation and promote smart waste management.
+
+An ultrasonic sensor is used to detect the presence of an object near the bin. Once an object is detected, the system pauses and waits until the object comes in contact with a capacitive moisture sensor. Based on the moisture content of the object, the Arduino classifies it as wet or dry waste.
+
+A servo motor then rotates to a predefined angle to direct the waste into the appropriate bin. After sorting, the servo returns to its neutral position, and the system resets to handle the next object. The entire setup is powered using a 5V power bank, making it portable and energy efficient.
+
+This project demonstrates the application of embedded systems, sensors, and automation in smart waste management.
+
+🎯 KEY FEATURES
+
+-Automatic wet and dry waste segregation
+-Contact-based moisture detection for accuracy
+-Servo-based mechanical sorting
+-Portable power-bank operation
+-Low-cost and easy to implement
+
+🌍 APPLICATIONS
+
+-Smart dustbins
+-Waste management systems
+-Public places and institutions
+-Smart city projects
+-Educational mini-projects
+
+
 #include <Servo.h>
 
 // ---------------- PINS ----------------
-#define TRIG_PIN 2
-#define ECHO_PIN 3
+#define TRIG_PIN 9
+#define ECHO_PIN 8
 #define MOISTURE_PIN A0
-#define SERVO_PIN 9
+#define SERVO_PIN 10
 
 // ---------------- OBJECTS ----------------
 Servo sorterServo;
 
 // ---------------- MOISTURE CALIBRATION ----------------
-int dryValue = 850;
-int wetValue = 350;
+int dryValue = 450;
+int wetValue = 250;
 int threshold;
 
 // ---------------- VARIABLES ----------------
