@@ -1,129 +1,124 @@
-                     ------------BRIEF DESCRIPTION ABOUT WASTE SORTING BIN----------------
-                     PROJECT DESCRIPTION
+📌 PROJECT TITLE
 
-This project presents an automatic bin sorting system that separates waste into wet and dry categories using sensors and a servo mechanism. The system is designed to reduce manual waste segregation and promote smart waste management.
+Automatic Wet and Dry Waste Bin Sorting System Using Arduino
 
-An ultrasonic sensor is used to detect the presence of an object near the bin. Once an object is detected, the system pauses and waits until the object comes in contact with a capacitive moisture sensor. Based on the moisture content of the object, the Arduino classifies it as wet or dry waste.
+📝 1. INTRODUCTION
 
-A servo motor then rotates to a predefined angle to direct the waste into the appropriate bin. After sorting, the servo returns to its neutral position, and the system resets to handle the next object. The entire setup is powered using a 5V power bank, making it portable and energy efficient.
+Waste segregation is a major challenge in modern waste management systems. Mixing wet and dry waste leads to environmental pollution, difficulty in recycling, and health hazards. Manual segregation is time-consuming, unhygienic, and inefficient.
 
-This project demonstrates the application of embedded systems, sensors, and automation in smart waste management.
+This project focuses on designing and implementing an automatic waste sorting system that separates wet and dry waste using sensors and automation. The system uses an Arduino microcontroller, an ultrasonic sensor for object detection, a capacitive moisture sensor for waste classification, and a servo motor for mechanical sorting. The system is powered using a 5V power bank, making it portable and safe.
 
-🎯 KEY FEATURES
+🎯 2. OBJECTIVES OF THE PROJECT
 
--Automatic wet and dry waste segregation
--Contact-based moisture detection for accuracy
--Servo-based mechanical sorting
--Portable power-bank operation
--Low-cost and easy to implement
+-To automatically detect waste without human intervention
+-To classify waste as wet or dry based on moisture content
+-To mechanically direct waste into the correct bin
+-To reduce manual effort and improve hygiene
+-To design a low-cost, energy-efficient system
 
-🌍 APPLICATIONS
+🧠 3. WORKING PRINCIPLE
+
+-The system works in three main stages:
+-Stage 1: Object Detection
+-An ultrasonic sensor continuously measures the distance in front of the bin.
+-When an object comes within a preset range (e.g., 10 cm), the system confirms the presence of waste and locks the ultrasonic sensor to prevent repeated triggering.
+
+Stage 2: Moisture Detection
+
+-After object detection, the system waits until the waste touches the capacitive moisture sensor.
+  The moisture sensor measures the moisture content:
+    -High sensor value → Dry waste
+    -Low sensor value → Wet waste
+       -his waiting logic ensures accurate classification and avoids false readings.
+
+Stage 3: Waste Sorting
+
+Based on the moisture sensor reading:
+
+-If waste is dry, the servo rotates to the dry bin angle
+-If waste is wet, the servo rotates to the wet bin angle
+-After sorting, the servo returns to a neutral position, and the system resets to wait for the next object.
+
+🔩 4. HARDWARE COMPONENTS USED
+4.1 Arduino (Microcontroller)
+  Acts as the brain of the system
+  Reads sensor data
+  Controls servo movement
+  Implements decision-making logic
+
+4.2 Ultrasonic Sensor (HC-SR04)
+
+  Detects the presence of waste
+  Uses sound waves to measure distance
+  Helps in triggering the sorting process only when waste is present
+
+4.3 Capacitive Moisture Sensor
+
+  Detects moisture content in waste
+  More durable than resistive sensors
+  Used to classify waste as wet or dry
+
+4.4 Servo Motor
+
+  Controls the mechanical sorting mechanism
+  Rotates to predefined angles for wet and dry bins
+  Provides accurate and controlled movement
+
+4.5 Power Bank (5V Supply)
+
+  Powers the Arduino and servo
+  Provides sufficient current for servo operation
+  Makes the system portable and safe
+
+🔌 5. POWER SUPPLY CONCEPT
+
+-The power bank provides 5V to the system
+-Servo motor is powered directly from the power bank
+-All grounds are connected together (common ground)
+-This prevents voltage drop and servo jitter
+
+🧮 6. SOFTWARE LOGIC / ALGORITHM
+
+-Start system
+-Initialize sensors and servo
+-Continuously check ultrasonic sensor
+-If object detected → stop ultrasonic sensing
+-Wait until moisture sensor detects valid reading
+-Compare moisture value with threshold
+-Rotate servo to wet or dry bin
+-Return servo to neutral position
+-Reset system
+-Repeat process
+
+📊 7. CALIBRATION DETAILS
+
+Moisture Sensor Calibration
+ -Dry waste value ≈ 800–900
+ -Wet waste value ≈ 300–400
+ -Threshold = average of dry and wet values
+
+Servo Calibration
+
+-0° → Dry bin
+-90° → Wet bin
+-45° → Neutral position
+
+🌍 8. APPLICATIONS
 
 -Smart dustbins
--Waste management systems
--Public places and institutions
+-Waste segregation systems
 -Smart city projects
--Educational mini-projects
+-Public places (malls, schools, offices)
+-Educational and mini projects
 
+✅ 9. ADVANTAGES
 
-#include <Servo.h>
+-Automatic and hygienic
+-Reduces human involvement
+-Low cost and simple design
+-Portable due to power bank usage
+-Easy to upgrade and modify
 
-// ---------------- PINS ----------------
-#define TRIG_PIN 9
-#define ECHO_PIN 8
-#define MOISTURE_PIN A0
-#define SERVO_PIN 10
+🏁 10. CONCLUSION
 
-// ---------------- OBJECTS ----------------
-Servo sorterServo;
-
-// ---------------- MOISTURE CALIBRATION ----------------
-int dryValue = 450;
-int wetValue = 250;
-int threshold;
-
-// ---------------- VARIABLES ----------------
-long duration;
-int distance;
-int moisture;
-
-// ---------------- STATES ----------------
-bool objectDetected = false;
-bool sortingDone = false;
-
-void setup() {
-  Serial.begin(9600);
-
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
-
-  sorterServo.attach(SERVO_PIN);
-  sorterServo.write(45);   // neutral
-
-  threshold = (dryValue + wetValue) / 2;
-
-  Serial.println("SYSTEM READY – WAITING FOR OBJECT");
-}
-
-void loop() {
-
-  // ================= STEP 1: WAIT FOR OBJECT =================
-  if (!objectDetected) {
-
-    digitalWrite(TRIG_PIN, LOW);
-    delayMicroseconds(2);
-    digitalWrite(TRIG_PIN, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(TRIG_PIN, LOW);
-
-    duration = pulseIn(ECHO_PIN, HIGH, 30000);
-    distance = duration * 0.034 / 2;
-
-    Serial.print("Distance: ");
-    Serial.println(distance);
-
-    if (distance > 0 && distance <= 10) {
-      objectDetected = true;   // LOCK ultrasonic
-      Serial.println("Object detected → waiting for moisture contact");
-      delay(500);
-    }
-
-    return;  // 🔴 STOP HERE (ultrasonic waits)
-  }
-
-  // ================= STEP 2: WAIT FOR MOISTURE =================
-  if (!sortingDone) {
-
-    moisture = analogRead(MOISTURE_PIN);
-    Serial.print("Moisture reading: ");
-    Serial.println(moisture);
-
-    // wait until sensor touches object
-    if (moisture >= wetValue && moisture <= dryValue) {
-
-      if (moisture > threshold) {
-        Serial.println("DRY OBJECT → DRY BIN");
-        sorterServo.write(0);
-      } else {
-        Serial.println("WET OBJECT → WET BIN");
-        sorterServo.write(90);
-      }
-
-      sortingDone = true;
-      delay(2000);
-
-      sorterServo.write(45);   // neutral
-      delay(1500);
-
-      Serial.println("SORTING DONE");
-    }
-
-    return;  // 🔴 STOP HERE (waits for moisture)
-  }
-
-  // ================= STEP 3: RESET SYSTEM =================
-  objectDetected = false;
-  sortingDone = false;
-  Serial.println("SYSTEM RESET – WAITING FOR NEXT OBJECT");
-  delay(1000);
-}
+The Automatic Wet and Dry Waste Bin Sorting System successfully demonstrates how embedded systems and sensors can be used to automate waste management. By combining ultrasonic detection, moisture sensing, and servo-based actuation, the system provides an effective solution for waste segregation. This project highlights the importance of automation in maintaining cleanliness and supports the vision of smart and sustainable cities.
