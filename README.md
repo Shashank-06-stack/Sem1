@@ -99,9 +99,9 @@ Moisture Sensor Calibration
 
 Servo Calibration
 
--0° → Dry bin
--90° → Wet bin
--45° → Neutral position
+0° → Dry bin
+90° → Wet bin
+180° → Neutral position
 
 🌍 8. APPLICATIONS
 
