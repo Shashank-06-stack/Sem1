@@ -1,101 +1,73 @@
 #include <Servo.h>
 
-// ---------------- PINS ----------------
 #define TRIG_PIN 9
 #define ECHO_PIN 8
 #define MOISTURE_PIN A0
 #define SERVO_PIN 10
 
-// ---------------- OBJECTS ----------------
 Servo sorterServo;
 
-// ---------------- MOISTURE CALIBRATION ----------------
-int dryValue = 450;
-int wetValue = 250;
-int threshold;
-
-// ---------------- VARIABLES ----------------
-long duration;
-int distance;
-int moisture;
-
-// ---------------- STATES ----------------
-bool objectDetected = false;
-bool sortingDone = false;
+// Change this after checking Serial Monitor
+int moistureThreshold = 500;
 
 void setup() {
-  Serial.begin(9600);
-
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
 
+  Serial.begin(9600);
+
   sorterServo.attach(SERVO_PIN);
-  sorterServo.write(45);   // neutral
+  sorterServo.write(90);   // Neutral position
+  delay(2000);
 
-  threshold = (dryValue + wetValue) / 2;
-
-  Serial.println("SYSTEM READY – WAITING FOR OBJECT");
+  Serial.println("System Ready...");
 }
 
 void loop() {
 
-  // ================= STEP 1: WAIT FOR OBJECT =================
-  if (!objectDetected) {
+  long distance = getDistance();
 
-    digitalWrite(TRIG_PIN, LOW);
-    delayMicroseconds(2);
-    digitalWrite(TRIG_PIN, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(TRIG_PIN, LOW);
+  // Step 1: Object detected
+  if (distance > 0 && distance <= 10) {
+    Serial.println("Object detected. Waiting for moisture contact...");
 
-    duration = pulseIn(ECHO_PIN, HIGH, 30000);
-    distance = duration * 0.034 / 2;
+    delay(1000); // Allow waste to settle
 
-    Serial.print("Distance: ");
-    Serial.println(distance);
+    int moistureValue = analogRead(MOISTURE_PIN);
+    Serial.print("Moisture Value: ");
+    Serial.println(moistureValue);
 
-    if (distance > 0 && distance <= 10) {
-      objectDetected = true;   // LOCK ultrasonic
-      Serial.println("Object detected → waiting for moisture contact");
-      delay(500);
+    // Step 2: Sorting decision
+    if (moistureValue < moistureThreshold) {
+      Serial.println("WET waste detected");
+      sorterServo.write(180);   // Wet bin
+    } 
+    else {
+      Serial.println("DRY waste detected");
+      sorterServo.write(0);     // Dry bin
     }
 
-    return;  // 🔴 STOP HERE (ultrasonic waits)
+    delay(2000);               // Hold position
+
+    // Step 3: Reset
+    sorterServo.write(90);
+    Serial.println("Resetting system...");
+    delay(3000);
   }
+}
 
-  // ================= STEP 2: WAIT FOR MOISTURE =================
-  if (!sortingDone) {
+// ---------- Ultrasonic Function ----------
+long getDistance() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
 
-    moisture = analogRead(MOISTURE_PIN);
-    Serial.print("Moisture reading: ");
-    Serial.println(moisture);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
 
-    // wait until sensor touches object
-    if (moisture >= wetValue && moisture <= dryValue) {
+  long duration = pulseIn(ECHO_PIN, HIGH, 30000);
+  if (duration == 0) return -1;
 
-      if (moisture > threshold) {
-        Serial.println("DRY OBJECT → DRY BIN");
-        sorterServo.write(0);
-      } else {
-        Serial.println("WET OBJECT → WET BIN");
-        sorterServo.write(90);
-      }
-
-      sortingDone = true;
-      delay(2000);
-
-      sorterServo.write(45);   // neutral
-      delay(1500);
-
-      Serial.println("SORTING DONE");
-    }
-
-    return;  // 🔴 STOP HERE (waits for moisture)
-  }
-
-  // ================= STEP 3: RESET SYSTEM =================
-  objectDetected = false;
-  sortingDone = false;
-  Serial.println("SYSTEM RESET – WAITING FOR NEXT OBJECT");
-  delay(1000);
+  long distance = duration * 0.034 / 2;
+  return distance;
 }
